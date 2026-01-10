@@ -1,29 +1,35 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import os
-from engine import extract_details  # Ensure engine.py is in the same folder
+import sys
+
+# Ensure your custom logic is imported correctly
+try:
+    from engine import extract_details
+except ImportError:
+    print("[!] Error: engine.py not found. Make sure it's in the same folder.")
 
 app = Flask(__name__)
 
-# 1. ENABLE CORS: This is vital so the other guy's repo can call your Mac
-CORS(app, resources={r"/*": {"origins": "*"}})
+# 1. ENHANCED CORS: Allows your frontend (Vite/React/Live URL) to talk to this backend
+CORS(app)
 
-# Configure where to save uploaded images temporarily
+# Configure temporary upload storage
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route('/')
-def home():
-    """Serves the dashboard to you or anyone hitting the URL in a browser."""
-    return render_template('index.html')
+def health_check():
+    """Simple route to check if the server is awake via browser."""
+    return jsonify({
+        "status": "online",
+        "message": "ML Backend is running successfully",
+        "environment": "Production" if os.environ.get("PORT") else "Development"
+    }), 200
 
-@app.route('/extract', methods=['POST', 'OPTIONS'])
+@app.route('/extract', methods=['POST'])
 def upload_file():
-    # Handle the 'Preflight' request sent by browsers during cross-domain calls
-    if request.method == 'OPTIONS':
-        return jsonify({"status": "ok"}), 200
-
     if 'file' not in request.files:
         return jsonify({"error": "No file uploaded", "is_valid_ocr": False}), 400
     
@@ -36,30 +42,30 @@ def upload_file():
     file.save(filepath)
 
     try:
-        # 2. TRIGGER YOUR ENGINE
+        # TRIGGER ENGINE
         data = extract_details(filepath)
         
-        # 3. ADD INTEGRATION HELPERS
-        # This allows the other guy to just check 'if (data.is_valid_ocr)'
+        # Validation Logic
         has_name = data.get('Name') != "Not Found"
         has_aadhar = data.get('Aadhaar Number') != "Not Found"
-        data['is_valid_ocr'] = has_name and has_aadhar
-        
-        # Log the result in your terminal so you can see what's happening
-        print(f"[*] Processed {file.filename} | Match Ready: {data['is_valid_ocr']}")
+        data['is_valid_ocr'] = bool(has_name and has_aadhar)
         
         return jsonify(data)
 
     except Exception as e:
         print(f"[!] System Error: {str(e)}")
-        return jsonify({"error": "Server processing error", "is_valid_ocr": False}), 500
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
     
     finally:
-        # 4. CLEANUP: Delete the image so your Mac doesn't fill up with sensitive data
+        # CLEANUP: Ensure sensitive images are deleted immediately
         if os.path.exists(filepath):
             os.remove(filepath)
 
 if __name__ == '__main__':
-    # 0.0.0.0 makes the server public on your network
-    # port 5000 is what you are forwarding via Ngrok
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # DYNAMIC PORT: Render assigns a port via environment variable
+    # Local runs will fall back to 5000
+    port = int(os.environ.get("PORT", 5000))
+    
+    # host='0.0.0.0' is mandatory for cloud visibility
+    # debug=False is safer and uses less RAM in production
+    app.run(host='0.0.0.0', port=port, debug=False)
