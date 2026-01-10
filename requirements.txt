@@ -1,0 +1,26 @@
+
+# ML Server Requirements
+# Install with: pip install -r ML/requirements.txt
+
+# Core ML/OCR Libraries
+easyocr>=1.7.0
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+pytesseract>=0.3.10
+ultralytics>=8.0.0
+
+# Image Processing
+opencv-python>=4.8.0
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# HuggingFace (for YOLO model download)
+huggingface_hub>=0.20.0
+
+# Flask (web server)
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Supabase (optional - if using database verification)
+supabase>=2.0.0
+
