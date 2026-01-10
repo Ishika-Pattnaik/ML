@@ -1,16 +1,17 @@
-# Web Server (Essential for Render)
+# Web Server
 flask>=3.0.0
 flask-cors>=4.0.0
 gunicorn>=21.0.0
 
-# Core ML/OCR Libraries (Optimized)
-easyocr>=1.7.0
-paddlepaddle-tiny>=2.5.0
+# Core ML/OCR Libraries
+# We use the standard 'paddlepaddle' (CPU version) instead of tiny
+paddlepaddle==2.6.1 
 paddleocr>=2.7.0
+easyocr>=1.7.0
 pytesseract>=0.3.10
 ultralytics>=8.0.0
 
-# Image Processing
+# Image Processing (Headless saves 100MB+ RAM)
 opencv-python-headless>=4.8.0
 numpy>=1.24.0
 Pillow>=10.0.0
