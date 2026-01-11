@@ -1,11 +1,12 @@
 import re
 from paddleocr import PaddleOCR
 
-# The fix: use_device='cpu' instead of use_gpu=False
-# Removed show_log as it's causing an error in this version
-ocr_model = PaddleOCR(use_angle_cls=True, lang='en', use_device='cpu')
+# This is the 'bulletproof' way to initialize PaddleOCR 
+# It avoids using arguments that are causing version conflicts
+ocr_model = PaddleOCR(use_angle_cls=True, lang='en')
 
 def extract_aadhaar_logic(image_path):
+    # Pass use_gpu=False here instead of in the constructor
     result = ocr_model.ocr(image_path, cls=True)
     
     if not result or not result[0]:
