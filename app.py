@@ -1,35 +1,43 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from engine import extract_aadhaar_logic
 from werkzeug.utils import secure_filename
+# Import the logic from engine.py
+from engine import extract_aadhaar_logic
 
 app = Flask(__name__)
-CORS(app) # Crucial: Allows your main project's domain to access this API
+CORS(app)
 
+# Configuration
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+@app.route('/')
+def health_check():
+    """
+    Critical for Render: This allows the server to bind to a port 
+    instantly before the heavy ML models finish downloading.
+    """
+    return jsonify({"status": "API is Live"}), 200
+
 @app.route('/extract-aadhaar', methods=['POST'])
 def api_route():
-    # Check if a file was actually sent
     if 'file' not in request.files:
-        return jsonify({"error": "No file part in the request"}), 400
+        return jsonify({"error": "No file part"}), 400
     
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"error": "No file selected"}), 400
+        return jsonify({"error": "No selected file"}), 400
 
     try:
-        # Save file temporarily
         filename = secure_filename(file.filename)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
 
-        # Process the image using your engine
+        # The ML processing happens here
         aadhaar_number = extract_aadhaar_logic(filepath)
 
-        # Cleanup: Delete the file after processing to save server space
+        # Cleanup
         if os.path.exists(filepath):
             os.remove(filepath)
 
@@ -41,13 +49,13 @@ def api_route():
         else:
             return jsonify({
                 "status": "error",
-                "message": "Aadhaar number not found in image"
+                "message": "Aadhaar number not detected"
             }), 404
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
-    # Bind to PORT environment variable for Render/Railway
-    port = int(os.environ.get("PORT", 5000))
+    # Use the port assigned by Render
+    port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
