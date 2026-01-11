@@ -1,12 +1,11 @@
 import re
 from paddleocr import PaddleOCR
 
-# This is the 'bulletproof' way to initialize PaddleOCR 
-# It avoids using arguments that are causing version conflicts
-ocr_model = PaddleOCR(use_angle_cls=True, lang='en')
-
+# Move initialization INSIDE the function
 def extract_aadhaar_logic(image_path):
-    # Pass use_gpu=False here instead of in the constructor
+    # This only runs when an image is actually uploaded
+    ocr_model = PaddleOCR(use_angle_cls=True, lang='en')
+    
     result = ocr_model.ocr(image_path, cls=True)
     
     if not result or not result[0]:
