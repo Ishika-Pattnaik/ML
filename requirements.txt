@@ -4,7 +4,7 @@ flask-cors>=4.0.0
 gunicorn>=21.2.0
 
 # Updated OCR Engine (Stable)
-paddlepaddle==2.6.2
+paddlepaddle==3.0.0
 paddleocr>=2.7.0
 
 # Image & Buffer Handling
