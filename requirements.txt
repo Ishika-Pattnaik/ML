@@ -1,21 +1,16 @@
 # Web Server
 flask>=3.0.0
 flask-cors>=4.0.0
-gunicorn>=21.0.0
+gunicorn>=21.2.0
 
-# Core ML/OCR Libraries
-# Using the latest version Render recommended
-paddlepaddle==3.0.0
+# OCR Engine
+paddlepaddle==2.6.1
 paddleocr>=2.7.0
-easyocr>=1.7.2
-pytesseract>=0.3.10
-ultralytics>=8.0.0
 
-# Image Processing
+# Image & Buffer Handling
+numpy<2.0.0
 opencv-python-headless>=4.8.0
-numpy>=1.24.0
 Pillow>=10.0.0
 
 # Utilities
-huggingface_hub>=0.20.0
-supabase>=2.0.0
+python-multipart
