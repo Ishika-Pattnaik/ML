@@ -1,31 +1,30 @@
 import re
-# Keep all your existing imports (paddleocr, easyocr, etc.) here
+import numpy as np
 from paddleocr import PaddleOCR
+from PIL import Image
 
-# Initialize OCR once (outside the function) to save time
-ocr_model = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
+# Initialize model once. use_gpu=False is required for most free hosting tiers.
+ocr_model = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, show_log=False)
 
-def get_aadhaar_number(image_path):
-    """
-    This keeps your original logic but adds a Regex filter 
-    to return only the Aadhaar number.
-    """
+def extract_aadhaar_logic(image_path):
+    # Run OCR
     result = ocr_model.ocr(image_path, cls=True)
     
-    # Flatten the result list and extract text
-    extracted_text = []
-    for idx in range(len(result)):
-        res = result[idx]
-        if res:
-            for line in res:
-                extracted_text.append(line[1][0])
+    if not result or not result[0]:
+        return None
 
-    # YOUR ORIGINAL LOGIC: Joining all text to find the 12-digit pattern
-    full_text = " ".join(extracted_text)
+    # Combine all detected text into one string
+    text_lines = [line[1][0] for line in result[0]]
+    full_text = " ".join(text_lines)
     
-    # Regex to find: XXXX XXXX XXXX or XXXXXXXXXXXX
-    match = re.search(r'\b\d{4}\s?\d{4}\s?\d{4}\b', full_text)
+    # Remove everything except numbers and spaces
+    clean_text = re.sub(r'[^0-9\s]', '', full_text)
+    
+    # Look for the 12-digit Aadhaar pattern (e.g., 1234 5678 9012 or 123456789012)
+    match = re.search(r'\b\d{4}\s?\d{4}\s?\d{4}\b', clean_text)
     
     if match:
+        # Return only the digits (remove spaces)
         return match.group().replace(" ", "")
+    
     return None
